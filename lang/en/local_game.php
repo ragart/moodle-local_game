@@ -29,3 +29,9 @@ $string['pluginname'] = 'Gamification';
 
 // Privacy
 $string['privacy:metadata'] = 'This plugin does not store any personal user data.';
+
+// Capabilities
+$string['game:manage'] = 'Manage gamification';
+$string['game:addpoints'] = 'Add points to a user';
+$string['game:removepoints'] = 'Remove points from a user';
+$string['game:getpoints'] = 'Get points';
