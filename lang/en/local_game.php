@@ -36,3 +36,10 @@ $string['game:play'] = 'Play and gain points';
 $string['game:viewuserpoints'] = 'View points of a user';
 $string['game:adduserpoints'] = 'Add points to a user';
 $string['game:removeuserpoints'] = 'Remove points from a user';
+
+// Settings
+$string['settings:general'] = 'General';
+$string['settings:enable'] = 'Enable gamification';
+$string['settings:enable_desc'] = 'Enable gamification for the site';
+$string['settings:eventcomponentdefaults'] = '{$a->componentfullname} events - Defaults';
+$string['settings:eventcomponentdefaults_desc'] = 'Default settings for the {$a->componentfullname} ({$a->component}) component events';
