@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Language strings.
+ * Event observers.
  *
  * @package    local_game
  * @copyright  2022 Salvador Banderas
@@ -24,22 +24,21 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// General
-$string['pluginname'] = 'Gamification';
+$observers = [
+    [
+        'eventname' => '\core\event\course_module_completion_updated',
+        'callback' => 'local_game_observer::course_module_completion_updated',
+    ],
+    [
+        'eventname' => '\core\event\course_completion_updated',
+        'callback' => 'local_game_observer::course_completion_updated',
+    ]
+];
 
-// Privacy
-$string['privacy:metadata'] = 'This plugin does not store any personal user data.';
-
-// Capabilities
-$string['game:manage'] = 'Manage gamification instances';
-$string['game:play'] = 'Play and gain points';
-$string['game:viewuserpoints'] = 'View points of a user';
-$string['game:adduserpoints'] = 'Add points to a user';
-$string['game:removeuserpoints'] = 'Remove points from a user';
-
-// Settings
-$string['settings:general'] = 'General';
-$string['settings:enable'] = 'Enable gamification';
-$string['settings:enable_desc'] = 'Enable gamification for the site';
-$string['settings:enableglobalinstance'] = 'Enable global gamification instance';
-$string['settings:enableglobalinstance_desc'] = 'Enable global gamification instance for the site';
+$trackedevents = \local_game\event_manager::get_game_event_list();
+foreach ($trackedevents as $eventname => $event) {
+    $observers[] = [
+        'eventname' => $eventname,
+        'callback' => 'local_game_observer::tracked_events',
+    ];
+}
