@@ -318,4 +318,105 @@ class game {
 
     }
 
+    /**
+     * Log event.
+     *
+     * @param int $userid User identifier
+     * @param int $points Points to add
+     * @param string $eventname Event name
+     * @param int $usermodified User who modified the points
+     * @return bool
+     */
+    public function log($userid, $points, $eventname = null, $usermodified = null) {
+        global $DB;
+
+        if (empty($this->activeinstance->id)) {
+            return false;
+        }
+
+        $log = new \stdClass();
+        $log->time = time();
+        $log->userid = $userid;
+        $log->instanceid = $this->activeinstance->id;
+        $log->eventname = $eventname;
+        $log->usermodified = $usermodified;
+        $log->points = $points;
+
+        $DB->insert_record('local_game_points_log', $log);
+
+        return true;
+    }
+
+    /**
+     * Check if user has reached the frequency limit for an event.
+     *
+     * @param int $userid User identifier
+     * @param string $eventname Event name
+     * @return bool
+     */
+    public function check_frequency_limit($userid, $eventname) {
+        global $DB;
+
+        if (empty($this->activeinstance->id)) {
+            return false;
+        }
+
+        if (!array_key_exists($eventname, $this->events)) {
+            return false;
+        }
+
+        $event = $this->events[$eventname];
+
+        $datetime = new \DateTime();
+        switch ($event->freqtype) {
+            case game_manager::FREQ_ONCE:
+                $time = 0;
+                break;
+            case game_manager::FREQ_HOURLY:
+                $datetime->sub(new \DateInterval('PT' . ($event->freqinterval - 1) . 'H'));
+                $datetime->setTime((int)$datetime->format('H'), 0, 0);
+                $time = $datetime->getTimestamp();
+                break;
+            case game_manager::FREQ_DAILY:
+                $datetime->sub(new \DateInterval('P' . ($event->freqinterval - 1) . 'D'));
+                $datetime->setTime(0, 0, 0);
+                $time = $datetime->getTimestamp();
+                break;
+            case game_manager::FREQ_WEEKLY:
+                $datetime->sub(new \DateInterval('P' . ($event->freqinterval - 1) . 'W'));
+                $datetime->setISODate((int)$datetime->format('o'), (int)$datetime->format('W'), 1);
+                $datetime->setTime(0, 0, 0);
+                $time = $datetime->getTimestamp();
+                break;
+            case game_manager::FREQ_MONTHLY:
+                $datetime->sub(new \DateInterval('P' . ($event->freqinterval - 1) . 'M'));
+                $datetime->setDate((int)$datetime->format('Y'), (int)$datetime->format('m'), 1);
+                $datetime->setTime(0, 0, 0);
+                $time = $datetime->getTimestamp();
+                break;
+            case game_manager::FREQ_YEARLY:
+                $datetime->sub(new \DateInterval('P' . ($event->freqinterval - 1) . 'Y'));
+                $datetime->setDate((int)$datetime->format('Y'), 1, 1);
+                $datetime->setTime(0, 0, 0);
+                $time = $datetime->getTimestamp();
+                break;
+            default:
+                return false;
+        }
+
+        if ($logs = $DB->get_records_select('local_game_points_log',
+                'instanceid = :instanceid AND userid = :userid AND eventname = :eventname AND time >= :time',
+                [
+                    'instanceid' => $this->activeinstance->id,
+                    'userid' => $userid,
+                    'eventname' => $event->eventname,
+                    'time' => $time
+                ])
+                and count($logs) >= $event->freqmax) {
+            return false;
+        }
+
+        return true;
+    }
+
 }

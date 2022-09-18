@@ -60,7 +60,12 @@ class local_game_observer {
         }
         $gameevent = $game->events[$data->eventname];
 
+        if (!$game->check_frequency_limit($user->id, $gameevent->eventname)) {
+            return false;
+        }
+
         $game->add_points($user->id, $gameevent->points);
+        $game->log($user->id, $gameevent->points, $gameevent->eventname);
 
         return true;
 
